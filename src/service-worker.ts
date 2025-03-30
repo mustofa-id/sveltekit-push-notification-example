@@ -7,7 +7,6 @@ const sw = self as unknown as ServiceWorkerGlobalScope;
 
 sw.addEventListener('push', (e) => {
 	const data = e.data?.json();
-	console.log(data);
 	sw.registration.showNotification(data?.title, {
 		icon: '/favicon.png',
 		badge: '/favicon.png',
