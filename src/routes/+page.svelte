@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { dev } from '$app/environment';
 	import { enhance } from '$app/forms';
 	import { PUBLIC_VAPID_KEY } from '$env/static/public';
 	import { getStorageState } from '$lib/storage.svelte';
@@ -9,21 +8,18 @@
 
 	async function enableNotification(): Promise<void> {
 		if (!('Notification' in window)) return; // browser is not supported
+
 		storage.notification = await Notification.requestPermission();
-		if (storage.notification != 'granted') return;
-		const swRegistration = await registerServiceWorker();
-		await subscribeNotification(swRegistration);
+		if (storage.notification == 'granted') {
+			await subscribeNotification().catch((e) => {
+				console.error(e);
+				storage.notification = 'error';
+			});
+		}
 	}
 
-	async function registerServiceWorker(): Promise<ServiceWorkerRegistration> {
-		const registration = await navigator.serviceWorker.register('/service-worker.js', {
-			type: dev ? 'module' : 'classic'
-		});
-		return registration;
-	}
-
-	async function subscribeNotification(registration: ServiceWorkerRegistration): Promise<void> {
-		await navigator.serviceWorker.ready; // need to wait until ready before subs to push manager
+	async function subscribeNotification(): Promise<void> {
+		const registration = await navigator.serviceWorker.ready;
 		const subscription = await registration.pushManager.subscribe({
 			userVisibleOnly: true,
 			applicationServerKey: PUBLIC_VAPID_KEY
@@ -43,11 +39,14 @@
 <h1>Welcome to {title}</h1>
 <p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
 
+<!-- In real-world scenarios, enabling or disabling notifications
+may also require handling on the server side -->
+
 <button onclick={enableNotification} disabled={storage.notification == 'granted'}>
 	Enable Notification
 </button>
 
-<p>Notification permission: {storage.notification}</p>
+<p>Notification state: {storage.notification}</p>
 
 <form
 	style="display: grid; gap: 0.5rem; max-width: 24rem;"

@@ -10,7 +10,8 @@ export const actions = {
 		const fd = await request.formData();
 		const payload = JSON.stringify({
 			title: fd.get('title')?.toString() || 'SvelteKit App',
-			body: fd.get('body')?.toString() || 'Example push notification!'
+			body: fd.get('body')?.toString() || 'Example push notification!',
+			data: { url: '/' }
 		});
 
 		for (const subscription of db.subscriptions) {
